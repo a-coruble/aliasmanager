@@ -10,37 +10,36 @@ pub struct CLIConfigData {
 }
 
 pub enum CLIConfig {
-    HELP,
-    VALID(CLIConfigData),
-    INVALID(String)
+    Help,
+    Valid(CLIConfigData),
+    Invalid(String),
 }
 
 impl CLIConfig {
-    pub fn new(args: &Vec<String>) -> CLIConfig {
+    pub fn new(args: &[String]) -> CLIConfig {
         let help_string = String::from(HELP_ARGUMENT);
         match args.len() {
             2 => {
                 if args[1] != help_string {
-                    return CLIConfig::INVALID(String::from("Unknown argument passed, see usage with 'aliasmanager --help'"))
+                    return CLIConfig::Invalid(String::from(
+                        "Unknown argument passed, see usage with 'aliasmanager --help'",
+                    ));
                 }
-                return CLIConfig::HELP;
-            },
-            3 => {
-                return match CLIConfigData::new(args) {
-                    Ok(config) => CLIConfig::VALID(config),
-                    Err(error) => CLIConfig::INVALID(error)
-                };
-                
-            },
-            _ => {
-                return CLIConfig::INVALID(String::from("Wrong number of arguments, see usage with 'aliasmanager --help'"))
+                CLIConfig::Help
             }
+            3 => match CLIConfigData::new(args) {
+                Ok(config) => CLIConfig::Valid(config),
+                Err(error) => CLIConfig::Invalid(error),
+            },
+            _ => CLIConfig::Invalid(String::from(
+                "Wrong number of arguments, see usage with 'aliasmanager --help'",
+            )),
         }
     }
 }
 
 impl CLIConfigData {
-    pub fn new(args: &Vec<String>) -> Result<CLIConfigData, String> {
+    pub fn new(args: &[String]) -> Result<CLIConfigData, String> {
         let alias_trigger = args[1].clone();
         let alias_command = args[2].clone();
 
@@ -49,7 +48,7 @@ impl CLIConfigData {
         let shell_configuration_file_path = match shell_configuration_file_path {
             Ok(path) => path,
             Err(_error) => {
-                return Err(String::from("Error reading SHELL_CONFIGURATION_FILE_PATH environment variable"))
+                String::from("Error reading SHELL_CONFIGURATION_FILE_PATH environment variable")
             }
         };
 

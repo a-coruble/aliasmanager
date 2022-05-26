@@ -55,14 +55,14 @@ fn main() {
     let config = CLIConfig::new(&args);
 
     match config {
-        CLIConfig::VALID(config_data) => {
+        CLIConfig::Valid(config_data) => {
             run(config_data);
-        },
-        CLIConfig::INVALID(error) => {
+        }
+        CLIConfig::Invalid(error) => {
             eprintln!("Something went wrong, here is the error:\n{}", error);
             process::exit(1);
-        },
-        CLIConfig::HELP => {
+        }
+        CLIConfig::Help => {
             println!("{}", HELP_MESSAGE);
             process::exit(0);
         }
