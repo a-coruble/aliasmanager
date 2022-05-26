@@ -1,6 +1,10 @@
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore:
+      - 'main'
+  pull_request:
 
-name: Continuous Integration
+name: Continuous Integration - Development
 
 jobs:
   lint:
