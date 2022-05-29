@@ -59,3 +59,41 @@ impl CLIConfigData {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cli_configuration_with_2_arguments_not_help() {
+        let args = vec![String::from("arg1"), String::from("arg2")];
+        let _error_string =
+            String::from("Unknown argument passed, see usage with 'aliasmanager --help'");
+        assert!(matches!(
+            CLIConfig::new(&args),
+            CLIConfig::Invalid(_error_string)
+        ))
+    }
+
+    #[test]
+    fn test_cli_configuration_with_help_argument() {
+        let args = vec![String::from("arg1"), String::from("--help")];
+        assert!(matches!(CLIConfig::new(&args), CLIConfig::Help))
+    }
+
+    #[test]
+    fn test_cli_configuration_with_wrong_number_of_arguments() {
+        let args = vec![
+            String::from("arg1"),
+            String::from("arg2"),
+            String::from("arg3"),
+            String::from("arg4"),
+        ];
+        let _error_string =
+            String::from("Wrong number of arguments, see usage with 'aliasmanager --help'");
+        assert!(matches!(
+            CLIConfig::new(&args),
+            CLIConfig::Invalid(_error_string)
+        ))
+    }
+}
