@@ -3,12 +3,14 @@ use std::env;
 const SHELL_CONFIGURATION_FILE_PATH_ENVIRONMENT_VARIABLE: &str = "SHELL_CONFIGURATION_FILE_PATH";
 const HELP_ARGUMENT: &str = "--help";
 
+#[derive(Debug, PartialEq)]
 pub struct CLIConfigData {
     pub alias_command: String,
     pub alias_trigger: String,
     pub shell_configuration_file_path: String,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum CLIConfig<'a> {
     Help,
     Valid(CLIConfigData),
@@ -87,17 +89,17 @@ mod tests {
 
     #[test]
     fn test_valid_cli_configuration_without_env_variable() {
+        env::remove_var(SHELL_CONFIGURATION_FILE_PATH_ENVIRONMENT_VARIABLE);
+        assert!(env::var(SHELL_CONFIGURATION_FILE_PATH_ENVIRONMENT_VARIABLE).is_err());
         let args = vec![
             String::from("program_path"),
             String::from("gco"),
             String::from("git checkout"),
         ];
-        let _error_string =
-            String::from("Error reading SHELL_CONFIGURATION_FILE_PATH environment variable");
-        assert!(matches!(
-            CLIConfig::new(&args),
-            CLIConfig::Invalid(_error_string)
-        ));
+        let invalid_config =
+            CLIConfig::Invalid("Error reading SHELL_CONFIGURATION_FILE_PATH environment variable");
+        let cli_config = CLIConfig::new(&args);
+        assert_eq!(cli_config, invalid_config);
     }
 
     #[test]
@@ -120,5 +122,7 @@ mod tests {
             CLIConfig::new(&args),
             CLIConfig::Valid(_cli_config_data)
         ));
+        env::remove_var(SHELL_CONFIGURATION_FILE_PATH_ENVIRONMENT_VARIABLE);
+        assert!(env::var(SHELL_CONFIGURATION_FILE_PATH_ENVIRONMENT_VARIABLE).is_err());
     }
 }
