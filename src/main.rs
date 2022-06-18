@@ -4,6 +4,7 @@ use std::io::Write;
 use std::process;
 
 mod cli_parser;
+mod settings;
 use cli_parser::CLIConfig;
 use cli_parser::CLIConfigData;
 
@@ -53,6 +54,9 @@ fn run(config_data: CLIConfigData) {
 fn main() {
     let args: Vec<String> = env::args().collect();
     let config = CLIConfig::new(&args);
+    let settings = settings::Settings::new();
+
+    println!("{:?}", settings);
 
     match config {
         CLIConfig::Valid(config_data) => {

@@ -1,0 +1,14 @@
+[[workspaces]]
+name = "Dashlane"
+aliases = [
+    {trigger = "pci", command = "pnpm clean:all && pnpm install"},
+]
+
+[aliasmanager]
+shell_file_path = "$HOME/.zshrc"
+
+[[workspaces]]
+name = "Personal"
+aliases = [
+    {trigger = "bs", command = "brew search"}
+]
