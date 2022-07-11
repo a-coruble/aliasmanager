@@ -1,12 +1,19 @@
 use std::env;
 use std::fs;
+use std::fs::create_dir_all;
+use std::fs::OpenOptions;
 use std::io::Write;
+use std::path::Path;
 use std::process;
+
+use config::{Config, ConfigError, File};
 
 mod cli_parser;
 mod settings;
 use cli_parser::CLIConfig;
 use cli_parser::CLIConfigData;
+use config::ConfigBuilder;
+use directories::ProjectDirs;
 
 const HELP_MESSAGE: &str = "
 AliasManager
@@ -20,6 +27,12 @@ USAGE:
 OPTIONS:
     --help: prints this help message
 ";
+
+const DEFAULT_CONFIG_CONTENT: &str = "[aliasmanager]
+shell_file_path = \"$HOME/.zshrc\"
+";
+
+type ResultIO<T> = Result<T, std::io::Error>;
 
 fn run(config_data: CLIConfigData) {
     let alias_to_write = format!(
@@ -51,12 +64,56 @@ fn run(config_data: CLIConfigData) {
     process::exit(0)
 }
 
+fn create_default_settings_file(path: &Path) -> ResultIO<std::fs::File> {
+    OpenOptions::new()
+        .create(true)
+        .read(true)
+        .write(true)
+        .open(path)
+}
+
+fn get_or_create_settings_file() -> ResultIO<std::fs::File> {
+    match ProjectDirs::from("dev", "acoruble", "aliasmanager") {
+        None => Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "Could not create directory structure",
+        )),
+        Some(project_dirs) => {
+            let config_dir = project_dirs.config_dir();
+            let config_dir = Path::new(config_dir);
+            let file_path = config_dir.join("config.toml");
+            // TODO Debug why this statement returns false when the file indeed exists on the fs
+            let config_file_exists = file_path.join("config.toml").exists();
+            dbg!(config_file_exists);
+            dbg!(&file_path);
+            if !config_file_exists {
+                create_dir_all(config_dir);
+                let mut file = create_default_settings_file(&file_path).unwrap();
+                dbg!(&file);
+                file.write(DEFAULT_CONFIG_CONTENT.as_bytes());
+                dbg!(&file);
+                dbg!(&file_path.as_os_str().to_str().unwrap());
+                let settings = Config::builder()
+                    .add_source(File::with_name(file_path.as_os_str().to_str().unwrap()))
+                    .build();
+                dbg!(settings.unwrap());
+
+                return Ok(file);
+            } else {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    "Could not create directory structure",
+                ))
+            }
+        }
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let config = CLIConfig::new(&args);
     let settings = settings::Settings::new();
-
-    println!("{:?}", settings);
+    let file_result = get_or_create_settings_file();
 
     match config {
         CLIConfig::Valid(config_data) => {
